@@ -2,6 +2,42 @@
 
 > **REQUIRED SUB-SKILL:** Use the executing-plans skill to implement this plan task-by-task.
 
+## Execution checkpoint — 2026-08-09
+
+Implementation is paused in the isolated worktree:
+
+```text
+/Users/davidus-tranus/Github/pi-agy-suite/.worktrees/v1-prose
+```
+
+Branch:
+
+```text
+feature/v1-prose
+```
+
+The repository's `main` branch contains only the approved design/docs baseline plus `.worktrees/` ignore configuration. No implementation commits exist on the feature branch yet.
+
+Task 1 has begun under TDD but is **not complete**:
+
+- RED was observed by running `node --experimental-strip-types --test test/load.test.ts`; it failed with `ERR_MODULE_NOT_FOUND` for `index.ts`, as intended.
+- Uncommitted scaffold files now exist: `package.json`, `tsconfig.json`, `index.ts`, `src/types.ts`, and `test/load.test.ts`.
+- `npm install`, `npm run check`, and the Task 1 commit have **not** been run.
+- Tasks 2–11 have not started.
+- Two native subagent launches failed before producing output or source changes; their temporary artifacts were removed. Do not infer implementation progress from those attempts.
+
+A fresh implementer must start by inspecting `git status`, reviewing the uncommitted scaffold against Task 1, then resume at **Task 1, Step 4** only after completing any missing Step 3 setup such as `npm install`. Preserve TDD evidence already recorded above; all later production behavior still requires its own observed failing test before implementation.
+
+Quality-gate phases agreed with the user:
+
+1. Tasks 1–3 — package, profiles/init, and secure source bundling.
+2. Task 4 — shared AGY runner and compatibility contract.
+3. Tasks 5–6 — prose contracts and typed tools.
+4. Tasks 7–9 — conductor templates, doctor, and manual live gate.
+5. Tasks 10–11 — documentation, CI, package/release readiness.
+
+At each phase boundary: run the full relevant checks, inspect the diff/status, obtain independent spec/correctness review, fix Important/Critical findings, and commit before proceeding.
+
 **Goal:** Publish a typed Pi extension that delegates flexible prose drafting and voice-focused editing to fresh, isolated `gemini-3.1-pro-low` runs through AGY.
 
 **Architecture:** Two thin Pi tools and two conductor prompt templates share profile resolution, explicit-source bundling, and one AGY subprocess runner. Pi may explore the active project, but AGY sees only a temporary bundle of explicitly selected inputs plus configured writing-sample directories; AGY returns schema-constrained prose and never writes into the project.
