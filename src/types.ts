@@ -17,3 +17,11 @@ export interface InputBundle {
   voiceGuide?: string;
   sampleDirectories: string[];
 }
+
+export interface AgyRunResult {
+  response: Record<string, unknown>;
+  usage: Record<string, unknown>;
+  version: string;
+  model: string;
+  binary: string;
+}

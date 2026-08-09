@@ -1,0 +1,47 @@
+#!/usr/bin/env node
+import { writeSync } from "node:fs";
+import { appendFile, readFile, writeFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
+
+const args = process.argv.slice(2);
+if (process.env.FAKE_AGY_RECORD) {
+  await appendFile(process.env.FAKE_AGY_RECORD, `${JSON.stringify(args)}\n`);
+}
+
+if (args.includes("--version")) {
+  console.log(process.env.FAKE_AGY_VERSION ?? "1.1.11");
+  process.exit(0);
+}
+
+if (args[0] === "models") {
+  console.log(process.env.FAKE_AGY_MODELS ?? "gemini-3.1-pro-low\tGemini 3.1 Pro (Low)");
+  process.exit(0);
+}
+
+if (process.env.FAKE_AGY_MODE === "nonzero") {
+  writeSync(2, `${"x".repeat(100_000)}FAKE_FAILURE_END\n`);
+  process.exit(23);
+}
+
+if (process.env.FAKE_AGY_MODE === "sleep") {
+  const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], {
+    stdio: "ignore",
+  });
+  if (process.env.FAKE_AGY_CHILD_PID) {
+    await writeFile(process.env.FAKE_AGY_CHILD_PID, String(child.pid));
+  }
+  setInterval(() => {}, 1000);
+} else if (process.env.FAKE_AGY_MODE === "empty") {
+  process.exit(0);
+} else if (process.env.FAKE_AGY_MODE === "missing-response") {
+  console.log(JSON.stringify({ usage: {} }));
+} else if (process.env.FAKE_AGY_MODE === "malformed-response") {
+  console.log(JSON.stringify({ response: "not-json", usage: {} }));
+} else if (process.env.FAKE_AGY_RESPONSE_FILE) {
+  process.stdout.write(await readFile(process.env.FAKE_AGY_RESPONSE_FILE, "utf8"));
+} else {
+  console.log(JSON.stringify({
+    response: JSON.stringify({ prose: "ok" }),
+    usage: {},
+  }));
+}
