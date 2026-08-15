@@ -14,13 +14,14 @@ test("registers agy-prose-init and rejects invalid scope", async () => {
   let command: Command | undefined;
   const messages: Array<{ content: string }> = [];
   extension({
+    registerTool() {},
     registerCommand(name: string, value: Command) {
       if (name === "agy-prose-init") command = value;
     },
     sendMessage(message: { content: string }) {
       messages.push(message);
     },
-  } as ExtensionAPI);
+  } as unknown as ExtensionAPI);
 
   assert.ok(command);
   await command.handler("", { cwd: "/unused" });
@@ -33,13 +34,14 @@ test("agy-prose-init local creates files under Pi's project config directory", a
     let command: Command | undefined;
     const messages: Array<{ content: string }> = [];
     extension({
+      registerTool() {},
       registerCommand(name: string, value: Command) {
         if (name === "agy-prose-init") command = value;
       },
       sendMessage(message: { content: string }) {
         messages.push(message);
       },
-    } as ExtensionAPI);
+    } as unknown as ExtensionAPI);
 
     assert.ok(command);
     await command.handler("local", { cwd });

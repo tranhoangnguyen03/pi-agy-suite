@@ -25,3 +25,10 @@ export interface AgyRunResult {
   model: string;
   binary: string;
 }
+
+export interface ProseResult {
+  prose: string;
+  consultedSamples: string[];
+  warnings: string[];
+  assumptions: string[];
+}

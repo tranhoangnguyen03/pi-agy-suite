@@ -5,8 +5,10 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { join } from "node:path";
 import { initializeProseProfile } from "./src/profiles.ts";
+import { registerProseTools } from "./src/tools.ts";
 
 export default function piAgySuite(pi: ExtensionAPI): void {
+  registerProseTools(pi);
   pi.registerCommand("agy-prose-init", {
     description: "Create a global or local prose profile without overwriting files",
     handler: async (args, ctx) => {
