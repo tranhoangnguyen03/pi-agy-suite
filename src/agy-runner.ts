@@ -132,28 +132,35 @@ function compareVersions(left: string, right: string): number {
   return 0;
 }
 
-async function checked(binary: string, args: string[]): Promise<ProcessResult> {
-  const result = await runProcess(binary, args);
+async function checked(
+  binary: string,
+  args: string[],
+  options: { signal?: AbortSignal; timeoutMs?: number } = {},
+): Promise<ProcessResult> {
+  const result = await runProcess(binary, args, options);
   if (result.code !== 0) {
     throw new Error(`AGY ${args.join(" ")} failed (${result.code}): ${result.stderr.trim()}`);
   }
   return result;
 }
 
-export async function inspectAgy(binary?: string): Promise<{
+export async function inspectAgy(
+  binary?: string,
+  options: { signal?: AbortSignal; timeoutMs?: number } = {},
+): Promise<{
   binary: string;
   version: string;
   models: string[];
 }> {
   binary ??= await resolveAgyBinary();
-  const versionText = (await checked(binary, ["--version"])).stdout.trim();
+  const versionText = (await checked(binary, ["--version"], options)).stdout.trim();
   const version = versionText.match(/\d+\.\d+\.\d+/)?.[0];
   if (!version) throw new Error(`Unable to parse AGY version: ${versionText}`);
   if (compareVersions(version, MINIMUM_AGY_VERSION) < 0) {
     throw new Error(`AGY ${MINIMUM_AGY_VERSION} or newer is required; found ${version}.`);
   }
 
-  const models = (await checked(binary, ["models"])).stdout
+  const models = (await checked(binary, ["models"], options)).stdout
     .split(/\r?\n/)
     .map((line) => line.trim().split(/\s+/)[0] ?? "")
     .filter(Boolean);
@@ -169,7 +176,7 @@ export async function runAgy({
   timeoutMs = 300_000,
   signal,
 }: RunAgyOptions): Promise<AgyRunResult> {
-  const { binary, version, models } = await inspectAgy();
+  const { binary, version, models } = await inspectAgy(undefined, { signal, timeoutMs });
   if (!models.includes(model)) {
     throw new Error(`AGY model ${model} is not available. No fallback model was used.`);
   }
@@ -217,12 +224,14 @@ export async function runAgy({
     if (!response || typeof response !== "object" || Array.isArray(response)) {
       throw new Error("AGY response was not a JSON object.");
     }
-    const usage = "usage" in envelope && (envelope as { usage: unknown }).usage;
+    if (!("usage" in envelope)) throw new Error("AGY JSON output is missing the usage field.");
+    const usage = (envelope as { usage: unknown }).usage;
+    if (!usage || typeof usage !== "object" || Array.isArray(usage)) {
+      throw new Error("AGY usage must be an object.");
+    }
     return {
       response: response as Record<string, unknown>,
-      usage: usage && typeof usage === "object" && !Array.isArray(usage)
-        ? usage as Record<string, unknown>
-        : {},
+      usage: usage as Record<string, unknown>,
       version,
       model,
       binary,

@@ -81,6 +81,41 @@ test("rejects AGY below 1.1.10", async () => fixture(async (root, agy) => {
   });
 }));
 
+test("cancellation covers AGY version preflight", async () => fixture(async (root, agy) => {
+  await environment({
+    AGY_BIN: agy,
+    FAKE_AGY_VERSION_DELAY: "300",
+  }, async () => {
+    const controller = new AbortController();
+    const started = Date.now();
+    const running = runAgy({
+      cwd: root,
+      prompt: "write",
+      schemaPath: await schema(root),
+      signal: controller.signal,
+    });
+    setTimeout(() => controller.abort(), 20);
+    await assert.rejects(running, /aborted/i);
+    assert.ok(Date.now() - started < 200, "preflight cancellation was not prompt");
+  });
+}));
+
+test("timeout covers AGY version preflight", async () => fixture(async (root, agy) => {
+  await environment({
+    AGY_BIN: agy,
+    FAKE_AGY_VERSION_DELAY: "300",
+  }, async () => {
+    const started = Date.now();
+    await assert.rejects(runAgy({
+      cwd: root,
+      prompt: "write",
+      schemaPath: await schema(root),
+      timeoutMs: 30,
+    }), /timed out/i);
+    assert.ok(Date.now() - started < 200, "preflight timeout was not prompt");
+  });
+}));
+
 test("requires the exact requested model", async () => fixture(async (root, agy) => {
   await environment({
     AGY_BIN: agy,
@@ -164,9 +199,11 @@ test("parses schema-constrained response and usage", async () => fixture(async (
   });
 }));
 
-test("rejects missing response, malformed structured response, and empty success", async () => fixture(async (root, agy) => {
+test("rejects missing response or usage, malformed structured response, and empty success", async () => fixture(async (root, agy) => {
   for (const [mode, pattern] of [
     ["missing-response", /missing.*response/i],
+    ["missing-usage", /missing.*usage/i],
+    ["malformed-usage", /usage.*object/i],
     ["malformed-response", /schema-constrained.*JSON/i],
     ["empty", /empty output/i],
   ] as const) {

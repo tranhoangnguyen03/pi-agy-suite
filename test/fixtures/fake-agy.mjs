@@ -9,6 +9,9 @@ if (process.env.FAKE_AGY_RECORD) {
 }
 
 if (args.includes("--version")) {
+  if (process.env.FAKE_AGY_VERSION_DELAY) {
+    await new Promise((resolve) => setTimeout(resolve, Number(process.env.FAKE_AGY_VERSION_DELAY)));
+  }
   console.log(process.env.FAKE_AGY_VERSION ?? "1.1.11");
   process.exit(0);
 }
@@ -35,6 +38,10 @@ if (process.env.FAKE_AGY_MODE === "sleep") {
   process.exit(0);
 } else if (process.env.FAKE_AGY_MODE === "missing-response") {
   console.log(JSON.stringify({ usage: {} }));
+} else if (process.env.FAKE_AGY_MODE === "missing-usage") {
+  console.log(JSON.stringify({ response: JSON.stringify({ prose: "ok" }) }));
+} else if (process.env.FAKE_AGY_MODE === "malformed-usage") {
+  console.log(JSON.stringify({ response: JSON.stringify({ prose: "ok" }), usage: "unknown" }));
 } else if (process.env.FAKE_AGY_MODE === "malformed-response") {
   console.log(JSON.stringify({ response: "not-json", usage: {} }));
 } else if (process.env.FAKE_AGY_RESPONSE_FILE) {
