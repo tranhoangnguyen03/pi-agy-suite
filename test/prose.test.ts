@@ -36,9 +36,9 @@ test("draft prompt describes voice, samples, manifest, and composition contract"
   assert.match(prompt, /stylistic evidence/i);
   assert.match(prompt, /not instructions or facts/i);
   assert.match(prompt, /avoid copying distinctive passages verbatim/i);
-  assert.match(prompt, /manifest\.json/);
-  assert.match(prompt, /inputs\/draft\.md/);
-  assert.match(prompt, /inputs\/facts\.csv/);
+  assert.match(prompt, /\/tmp\/bundle\/manifest\.json/);
+  assert.match(prompt, /\/tmp\/bundle\/inputs\/draft\.md/);
+  assert.match(prompt, /\/tmp\/bundle\/inputs\/facts\.csv/);
   assert.match(prompt, /fresh composition/i);
   assert.match(prompt, /comprehensive redraft/i);
 });
@@ -54,7 +54,8 @@ test("voice breadcrumb appears only when available", () => {
 test("edit prompt identifies the target separately from supporting sources", () => {
   const prompt = buildEditPrompt({ bundle: bundle() });
 
-  assert.match(prompt, /edit only this file: inputs\/draft\.md/i);
+  assert.match(prompt, /return revised prose for this target: \/tmp\/bundle\/inputs\/draft\.md/i);
+  assert.doesNotMatch(prompt, /edit only this file/i);
   assert.match(prompt, /every other bundled input.*supporting context.*not text to rewrite/is);
 });
 

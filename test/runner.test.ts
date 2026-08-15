@@ -133,11 +133,13 @@ test("passes the secure compatibility argv contract with prompt as one argument"
   const workspace = join(root, "workspace with spaces");
   const samples = join(root, "samples with spaces");
   const recordPath = join(root, "argv.jsonl");
+  const cwdPath = join(root, "cwd.json");
   await mkdir(workspace);
   await mkdir(samples);
   await environment({
     AGY_BIN: agy,
     FAKE_AGY_RECORD: recordPath,
+    FAKE_AGY_RECORD_CWD: cwdPath,
     FAKE_AGY_RESPONSE_FILE: successFixture.pathname,
   }, async () => {
     const schemaPath = await schema(workspace);
@@ -165,11 +167,21 @@ test("passes the secure compatibility argv contract with prompt as one argument"
       assert.equal(args[index + 1], pair[1], pair[0]);
     }
     assert.ok(args.includes("--sandbox"));
+    assert.ok(args.includes("--new-project"));
     assert.ok(args.includes("--disable-slash-commands"));
     assert.ok(args.includes("--log-file"));
     assert.ok(args.includes(prompt));
     assert.equal(args.filter((arg) => arg === prompt).length, 1);
     assert.ok(!args.includes("--dangerously-skip-permissions"));
+    const recordedCwd = JSON.parse(await readFile(cwdPath, "utf8")) as {
+      cwd: string;
+      pwd: string;
+      initCwd: string;
+      npmPrefix: string;
+    };
+    for (const path of Object.values(recordedCwd)) {
+      assert.equal(await realpath(path), await realpath(workspace));
+    }
   });
 }));
 

@@ -7,6 +7,14 @@ const args = process.argv.slice(2);
 if (process.env.FAKE_AGY_RECORD) {
   await appendFile(process.env.FAKE_AGY_RECORD, `${JSON.stringify(args)}\n`);
 }
+if (process.env.FAKE_AGY_RECORD_CWD) {
+  await writeFile(process.env.FAKE_AGY_RECORD_CWD, JSON.stringify({
+    cwd: process.cwd(),
+    pwd: process.env.PWD,
+    initCwd: process.env.INIT_CWD ?? null,
+    npmPrefix: process.env.npm_config_local_prefix ?? null,
+  }));
+}
 
 if (args.includes("--version")) {
   if (process.env.FAKE_AGY_VERSION_DELAY) {
@@ -24,7 +32,7 @@ if (args[0] === "models") {
 if (args.includes("--help")) {
   const flags = [
     "--add-dir", "--disable-slash-commands", "--json-schema", "--log-file",
-    "--mode", "--model", "--output-format", "--print-timeout", "--sandbox",
+    "--mode", "--model", "--new-project", "--output-format", "--print-timeout", "--sandbox",
   ].filter((flag) => flag !== process.env.FAKE_AGY_HELP_OMIT);
   const help = flags.join("\n");
   if (process.env.FAKE_AGY_HELP_STDERR === "1") console.error(help);

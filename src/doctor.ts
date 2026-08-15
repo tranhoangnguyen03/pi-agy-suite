@@ -11,6 +11,7 @@ const REQUIRED_FLAGS = [
   "--model",
   "--mode",
   "--sandbox",
+  "--new-project",
   "--add-dir",
   "--print-timeout",
   "--output-format",

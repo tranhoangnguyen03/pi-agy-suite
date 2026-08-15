@@ -103,7 +103,7 @@ For each run the extension:
 2. rejects missing files, directories, traversal, and workspace-escaping symlinks;
 3. copies only explicit inputs and the selected voice guide into a temporary bundle;
 4. exposes configured sample directories read-only with `--add-dir`;
-5. launches a fresh `agy -p` process with `--mode plan`, `--sandbox`, `--disable-slash-commands`, and a JSON Schema;
+5. launches a fresh `agy -p` process with `--new-project`, `--mode plan`, `--sandbox`, `--disable-slash-commands`, and a JSON Schema;
 6. never uses `--dangerously-skip-permissions`;
 7. removes the input bundle after the call.
 

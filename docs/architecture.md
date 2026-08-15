@@ -41,7 +41,7 @@ clean prose to Pi; provenance remains in tool details
 2. The typed tool accepts an explicit file list; source roles remain free-form.
 3. Named files are canonicalized, required to be regular files inside the active workspace, and copied read-only into a temporary directory.
 4. The active voice guide is copied into that directory. Validated global/local writing-sample directories are exposed read-only with `--add-dir`.
-5. AGY runs from the temporary workspace in plan mode and sandbox, with slash-command expansion disabled and a JSON Schema applied.
+5. AGY runs from the temporary workspace in a fresh project-backed conversation, plan mode, and sandbox, with slash-command expansion disabled and a JSON Schema applied.
 6. AGY never receives the active project directory and never writes user output. Pi alone may write returned prose to an explicitly approved path.
 7. Temporary input and log directories are removed after the run. Oversized successful prose is retained in a private temporary output file and referenced from tool details/output truncation notice.
 

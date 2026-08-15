@@ -12,7 +12,7 @@ Authoritative upstream changelog: <https://github.com/google-antigravity/antigra
 | 1.1.8–1.1.9 | Unsupported | Structured output exists, but the later headless `--model`/`--effort` fix is absent. |
 | 1.1.10 | Minimum | Includes the headless model/effort selection fix required by the prose model contract. |
 | 1.1.11 | Development baseline | Initial implementation baseline; fake-runner contract passes. |
-| 1.1.13 | Current local baseline | Doctor and fake-runner contracts pass. Live suite verification awaits explicit quota approval. |
+| 1.1.13 | Verified | Doctor, fake-runner contracts, and the opt-in live suite pass. |
 
 Policy:
 
@@ -32,6 +32,7 @@ The runner depends on:
 - `--model`
 - `--mode plan`
 - `--sandbox`
+- `--new-project`
 - `--add-dir`
 - `--print-timeout`
 - `--output-format json`
@@ -43,7 +44,8 @@ The runner depends on:
 
 - Headless runs honor the exact `--model` selection.
 - An unknown model exits nonzero rather than silently falling back.
-- `--mode plan` does not modify source files.
+- The runner requests `--mode plan`; AGY 1.1.13 warns that plan mode has no effect when slash-command expansion is disabled, so the read-only contract also relies on read-only copies, sandboxing, and explicit no-write prompting.
+- `--new-project` starts a fresh project-backed conversation.
 - `--sandbox` applies in print mode.
 - `agy --help` may write usage text to stderr; the doctor checks both stdout and stderr.
 - JSON output contains the response and usage information consumed by the runner.
@@ -51,6 +53,8 @@ The runner depends on:
 - A prompt passed with `-p` is accepted as one argv value without reading stdin.
 - A successful inference returns nonempty stdout.
 - Cancellation can terminate the AGY child process tree.
+- The model returns prose in the schema result without attempting file edits; headless AGY cannot approve write tools.
+- On AGY 1.1.13, a live diagnostic that explicitly requested a write returned an auto-denied `write_file` permission error and left the read-only bundled file unchanged.
 - A fresh invocation does not resume a previous conversation.
 
 ## Binary resolution
@@ -76,7 +80,7 @@ Review upstream changes involving:
 - JSON and stream-JSON envelopes;
 - JSON Schema enforcement;
 - exit codes and empty-success behavior;
-- permissions, plan mode, sandbox, and workspace access;
+- permissions, plan mode, sandbox, workspace/project resolution, and inherited environment variables;
 - authentication and credential storage;
 - log-file and conversation behavior;
 - custom agents and skills used by the next milestone.

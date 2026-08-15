@@ -83,6 +83,12 @@ export async function runAgyProcess(
   if (options.signal?.aborted) throw new Error("AGY run aborted.");
   const child = spawn(binary, args, {
     cwd: options.cwd,
+    env: options.cwd ? {
+      ...process.env,
+      INIT_CWD: options.cwd,
+      npm_config_local_prefix: options.cwd,
+      PWD: options.cwd,
+    } : process.env,
     shell: false,
     detached: process.platform !== "win32",
     stdio: ["ignore", "pipe", "pipe"],
@@ -188,6 +194,7 @@ export async function runAgy({
       "--model", model,
       "--mode", "plan",
       "--sandbox",
+      "--new-project",
       "--disable-slash-commands",
       "--output-format", "json",
       "--json-schema", schemaPath,

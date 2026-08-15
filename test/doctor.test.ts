@@ -51,7 +51,7 @@ test("reports binary, version, flags, model, and profile state without inference
     assert.match(report.text, /global samples.*present/i);
     assert.match(report.text, /local samples.*missing/i);
     for (const flag of [
-      "--model", "--mode", "--sandbox", "--add-dir", "--print-timeout",
+      "--model", "--mode", "--sandbox", "--new-project", "--add-dir", "--print-timeout",
       "--output-format", "--json-schema", "--log-file", "--disable-slash-commands",
     ]) assert.match(report.text, new RegExp(flag));
 
