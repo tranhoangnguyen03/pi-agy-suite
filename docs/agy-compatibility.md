@@ -36,6 +36,7 @@ The runner depends on:
 - `--output-format json`
 - `--json-schema`
 - `--log-file`
+- `--disable-slash-commands`
 
 ## Required behavior
 
@@ -87,4 +88,4 @@ When AGY is updated:
 7. Update this compatibility matrix.
 8. Record the verified AGY version in `CHANGELOG.md`.
 
-No AGY credentials are stored in CI. The live test is a manual pre-release gate.
+No AGY credentials are stored in CI. The live test is a manual pre-release gate and is skipped unless `AGY_LIVE=1` is set. Running it requires explicit approval because it consumes inference quota.

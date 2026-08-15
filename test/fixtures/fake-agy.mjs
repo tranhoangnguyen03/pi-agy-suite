@@ -21,6 +21,16 @@ if (args[0] === "models") {
   process.exit(0);
 }
 
+if (args.includes("--help")) {
+  const flags = [
+    "--add-dir", "--disable-slash-commands", "--json-schema", "--log-file",
+    "--mode", "--model", "--output-format", "--print-timeout", "--sandbox",
+  ].filter((flag) => flag !== process.env.FAKE_AGY_HELP_OMIT);
+  console.log(flags.join("\n"));
+  if (process.env.FAKE_AGY_SECRET_NOISE) console.error(process.env.FAKE_AGY_SECRET_NOISE);
+  process.exit(0);
+}
+
 if (process.env.FAKE_AGY_MODE === "nonzero") {
   writeSync(2, `${"x".repeat(100_000)}FAKE_FAILURE_END\n`);
   process.exit(23);

@@ -75,7 +75,7 @@ function terminate(child: ReturnType<typeof spawn>): void {
   }
 }
 
-async function runProcess(
+export async function runAgyProcess(
   binary: string,
   args: string[],
   options: { cwd?: string; signal?: AbortSignal; timeoutMs?: number } = {},
@@ -137,7 +137,7 @@ async function checked(
   args: string[],
   options: { signal?: AbortSignal; timeoutMs?: number } = {},
 ): Promise<ProcessResult> {
-  const result = await runProcess(binary, args, options);
+  const result = await runAgyProcess(binary, args, options);
   if (result.code !== 0) {
     throw new Error(`AGY ${args.join(" ")} failed (${result.code}): ${result.stderr.trim()}`);
   }
@@ -195,7 +195,7 @@ export async function runAgy({
       "--print-timeout", `${timeoutMs}ms`,
       ...addDirs.flatMap((directory) => ["--add-dir", directory]),
     ];
-    const result = await runProcess(binary, args, { cwd, signal, timeoutMs });
+    const result = await runAgyProcess(binary, args, { cwd, signal, timeoutMs });
     if (result.code !== 0) {
       throw new Error(`AGY inference failed (${result.code}): ${result.stderr.trim()}`);
     }
