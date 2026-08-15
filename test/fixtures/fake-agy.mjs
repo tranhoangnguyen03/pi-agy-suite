@@ -26,7 +26,9 @@ if (args.includes("--help")) {
     "--add-dir", "--disable-slash-commands", "--json-schema", "--log-file",
     "--mode", "--model", "--output-format", "--print-timeout", "--sandbox",
   ].filter((flag) => flag !== process.env.FAKE_AGY_HELP_OMIT);
-  console.log(flags.join("\n"));
+  const help = flags.join("\n");
+  if (process.env.FAKE_AGY_HELP_STDERR === "1") console.error(help);
+  else console.log(help);
   if (process.env.FAKE_AGY_SECRET_NOISE) console.error(process.env.FAKE_AGY_SECRET_NOISE);
   process.exit(0);
 }

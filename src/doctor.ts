@@ -62,7 +62,7 @@ export async function runDoctor({
   const supported = version !== "unknown" && version.localeCompare(MINIMUM_AGY_VERSION, undefined, { numeric: true }) >= 0;
   const models = modelsResult.stdout.split(/\r?\n/).map((line) => line.trim().split(/\s+/)[0]);
   const modelAvailable = models.includes(DEFAULT_AGY_MODEL);
-  const helpTokens = new Set(helpResult.stdout.split(/\s+/));
+  const helpTokens = new Set(`${helpResult.stdout}\n${helpResult.stderr}`.split(/\s+/));
   const flags = REQUIRED_FLAGS.map((flag) => ({ flag, present: helpTokens.has(flag) }));
   const canonicalGlobal = await realpath(globalProseDir).catch(() => globalProseDir);
   const canonicalLocal = await realpath(localProseDir).catch(() => localProseDir);

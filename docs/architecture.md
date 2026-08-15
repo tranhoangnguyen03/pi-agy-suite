@@ -10,10 +10,13 @@ Pi prompt template and conductor
     │  discovers/validates the smallest relevant source set
     ▼
 agy_prose_draft / agy_prose_edit
-    │  bundles explicit inputs and resolves prose profiles
+    │  resolves profiles and creates a temporary explicit-input bundle
+    ▼
+prose adapter
+    │  owns draft/edit semantics and the result schema
     ▼
 shared AGY runner
-    │  enforces version, model, sandbox, schema, timeout, cancellation
+    │  enforces binary, version, exact model, sandbox, timeout, cancellation
     ▼
 fresh agy -p run (gemini-3.1-pro-low by default)
     │
@@ -21,12 +24,39 @@ fresh agy -p run (gemini-3.1-pro-low by default)
 clean prose to Pi; provenance remains in tool details
 ```
 
-## Boundaries
+## Components
 
-- The conductor may inspect the active project; AGY receives only explicit copied inputs.
-- AGY never writes into the active project.
-- Voice/profile resolution and source bundling are independent of process invocation.
-- The shared runner owns mechanics, not prose semantics.
-- The v1 package has no speculative general backend abstraction. A backend interface is introduced only when an open-weight implementation exists.
+- `index.ts` registers tools and deterministic commands.
+- `src/profiles.ts` resolves layered global/local prose profiles and initializes missing scaffolding without overwrites.
+- `src/bundle.ts` validates workspace-relative files, copies explicit inputs and the voice guide, writes the manifest, and owns cleanup.
+- `src/prose.ts` builds separate draft/edit instructions and validates the schema-constrained prose result.
+- `src/agy-runner.ts` owns AGY discovery, compatibility preflight, subprocess bounds, secure argv construction, timeout, cancellation, and JSON-envelope parsing.
+- `src/tools.ts` composes those pieces into the two Pi-facing tools and keeps provenance in details.
+- `src/doctor.ts` checks the compatibility contract without starting inference.
+- `prompts/` contains conductor instructions for explicit and discovery-assisted requests.
+
+## Data and trust boundaries
+
+1. Pi may inspect the active project to understand intent.
+2. The typed tool accepts an explicit file list; source roles remain free-form.
+3. Named files are canonicalized, required to be regular files inside the active workspace, and copied read-only into a temporary directory.
+4. The active voice guide is copied into that directory. Validated global/local writing-sample directories are exposed read-only with `--add-dir`.
+5. AGY runs from the temporary workspace in plan mode and sandbox, with slash-command expansion disabled and a JSON Schema applied.
+6. AGY never receives the active project directory and never writes user output. Pi alone may write returned prose to an explicitly approved path.
+7. Temporary input and log directories are removed after the run. Oversized successful prose is retained in a private temporary output file and referenced from tool details/output truncation notice.
+
+## Compatibility boundary
+
+The runner supports only official AGY 1.1.10 or newer and fails when the exact requested model is unavailable. It constructs argv without a shell, passes the prompt as one argument, ignores stdin, bounds process output, rejects malformed/empty responses, and terminates the process group on timeout or cancellation.
+
+The doctor reuses discovery/process mechanics but invokes only `--version`, `--help`, and `models`; it never uses `-p` and therefore consumes no inference quota.
+
+## Non-goals
+
+- No unrestricted project delegation.
+- No credentials, AGY settings contents, project IDs, private profiles, or unrelated repository files in AGY prompts.
+- No hardcoded document-role or extension taxonomy.
+- No generic provider/backend framework until a second backend exists.
+- No research, image, or incomplete generic AGY wrapper in v1.
 
 The approved detailed design is in [`docs/plans/2026-08-09-pi-agy-suite-design.md`](plans/2026-08-09-pi-agy-suite-design.md).

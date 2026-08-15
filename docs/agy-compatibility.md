@@ -11,7 +11,8 @@ Authoritative upstream changelog: <https://github.com/google-antigravity/antigra
 | 1.1.5 and older | Unsupported | Required structured output is absent or the headless model guarantee is insufficient. |
 | 1.1.8–1.1.9 | Unsupported | Structured output exists, but the later headless `--model`/`--effort` fix is absent. |
 | 1.1.10 | Minimum | Includes the headless model/effort selection fix required by the prose model contract. |
-| 1.1.11 | Development baseline | Installed locally when the initial design was approved; live suite verification is still pending implementation. |
+| 1.1.11 | Development baseline | Initial implementation baseline; fake-runner contract passes. |
+| 1.1.13 | Current local baseline | Doctor and fake-runner contracts pass. Live suite verification awaits explicit quota approval. |
 
 Policy:
 
@@ -44,12 +45,17 @@ The runner depends on:
 - An unknown model exits nonzero rather than silently falling back.
 - `--mode plan` does not modify source files.
 - `--sandbox` applies in print mode.
+- `agy --help` may write usage text to stderr; the doctor checks both stdout and stderr.
 - JSON output contains the response and usage information consumed by the runner.
 - `--json-schema` constrains the final response.
 - A prompt passed with `-p` is accepted as one argv value without reading stdin.
 - A successful inference returns nonempty stdout.
 - Cancellation can terminate the AGY child process tree.
 - A fresh invocation does not resume a previous conversation.
+
+## Binary resolution
+
+The extension checks `AGY_BIN`, then `agy` on `PATH`, then `~/.local/bin/agy`. An invalid explicit `AGY_BIN` fails immediately. Doctor output reports only the resolved path and compatibility facts; it does not print settings contents, credentials, account data, or project IDs.
 
 ## Model dependency
 

@@ -60,6 +60,17 @@ test("reports binary, version, flags, model, and profile state without inference
   });
 }));
 
+test("reads AGY help from stderr", async () => fixture(async (root, agy) => {
+  await environment({ AGY_BIN: agy, FAKE_AGY_HELP_STDERR: "1" }, async () => {
+    const report = await runDoctor({
+      globalProseDir: join(root, "global"),
+      localProseDir: join(root, "local"),
+    });
+    assert.equal(report.ok, true);
+    assert.match(report.text, /--model: present/);
+  });
+}));
+
 test("reports missing binary, old version, missing flag, and missing model", async () => fixture(async (root, agy) => {
   const roots = { globalProseDir: join(root, "global"), localProseDir: join(root, "local") };
   const missing = await runDoctor({ ...roots, env: { PATH: "", AGY_BIN: join(root, "missing") }, home: join(root, "home") });
