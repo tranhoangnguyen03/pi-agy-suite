@@ -64,6 +64,11 @@ if (process.env.FAKE_AGY_MODE === "sleep") {
   console.log(JSON.stringify({ response: JSON.stringify({ prose: "ok" }), usage: "unknown" }));
 } else if (process.env.FAKE_AGY_MODE === "malformed-response") {
   console.log(JSON.stringify({ response: "not-json", usage: {} }));
+} else if (process.env.FAKE_AGY_MODE === "fenced-response") {
+  console.log(JSON.stringify({
+    response: '```json\n{"prose":"ok","consulted_samples":[],"warnings":[],"assumptions":[]}\n```',
+    usage: {},
+  }));
 } else if (process.env.FAKE_AGY_RESPONSE_FILE) {
   process.stdout.write(await readFile(process.env.FAKE_AGY_RESPONSE_FILE, "utf8"));
 } else {

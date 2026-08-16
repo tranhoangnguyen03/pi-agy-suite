@@ -19,6 +19,8 @@ for (const [name, tool] of [
     assert.match(template, /project instructions/i);
     assert.match(template, /ask.*ambiguity.*materially change/is);
     assert.match(template, /present.*AGY.*prose unchanged/is);
+    assert.match(template, /requested.*output path.*write.*verbatim/is);
+    assert.match(template, /no output path.*requested.*not.*file.*created/is);
     assert.match(template, /explicit replacement intent.*overwrit/is);
     assert.match(template, /argument-hint: "\[intent and @sources\]"/);
   });

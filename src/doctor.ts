@@ -87,6 +87,7 @@ export async function runDoctor({
       `Global samples: ${globalSamples ? "present" : "missing"}`,
       `Local samples: ${localSamples ? "present" : "missing"}`,
       `Temporary workspace: ${temporaryReady ? "ready" : "unavailable"}`,
+      "Live inference: not run (doctor is quota-free)",
     ].join("\n"),
   };
 }

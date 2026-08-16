@@ -19,13 +19,22 @@ The package is not published yet. After release:
 pi install npm:@tranhoangnguyen03/pi-agy-suite
 ```
 
-For local verification:
+For isolated local verification from the project you want Pi to inspect:
 
 ```bash
-pi -e /absolute/path/to/pi-agy-suite
+SUITE=/absolute/path/to/pi-agy-suite
+pi \
+  --no-extensions --extension "$SUITE/index.ts" \
+  --no-skills \
+  --no-prompt-templates \
+  --prompt-template "$SUITE/prompts/agy-prose-draft.md" \
+  --prompt-template "$SUITE/prompts/agy-prose-edit.md" \
+  --no-themes --no-context-files --no-approve \
+  --tools read,write,agy_prose_draft,agy_prose_edit \
+  --no-session
 ```
 
-Use `/reload` after changing installed extension or profile files.
+This loads only this extension's runtime and prompt templates. `write` is enabled only so Pi can save prose when the request names an output path; the AGY subprocess remains read-only. Use `/reload` after changing extension or profile files.
 
 ## Public interfaces
 
@@ -43,21 +52,25 @@ Both return clean prose visibly. Model, AGY version, selected profiles, source m
 /agy-prose-edit [intent and @sources]
 ```
 
-Explicit request:
+Explicit request that creates a new file:
 
 ```text
-/agy-prose-draft See @research.md and @spine.md. Redraft @draft.md in my voice.
+/agy-prose-draft Using only @facts.md, write a 100–140 word launch note to launch-note.md. The destination does not exist; create it after drafting.
 ```
 
-Discovery-assisted request:
+Expect one AGY call followed by one Pi `write` call. Without `to launch-note.md`, the result is displayed only and no file is created.
+
+Explicit edit request that creates a separate file:
 
 ```text
-/agy-prose-edit @draft.md does not sound like me.
+/agy-prose-edit Edit @launch-note.md for clarity and voice using @facts.md as factual support. Save the result to launch-note-edited.md; the destination does not exist.
 ```
 
 For the second form, Pi may inspect nearby files to select the smallest relevant source set. AGY still receives only the explicit list passed to the typed tool.
 
-Pi presents returned prose unchanged. If the user requested an output path, Pi writes it verbatim; it must not overwrite an existing file without explicit replacement intent.
+Pi presents returned prose unchanged. Draft/edit tools return prose; they do not create files themselves. If the user requested an output path, the Pi conductor writes the result verbatim with Pi's `write` tool; it must not overwrite an existing file without explicit replacement intent. A local test session must therefore enable `write` when testing file output.
+
+If an AGY call fails, assume it may already have consumed quota. The conductor reports the failure and asks before retrying.
 
 ### Commands
 
@@ -118,7 +131,7 @@ npm pack --dry-run
 npm run test:agy-live
 ```
 
-The last command skips by default. The manual pre-release compatibility gate consumes quota and requires explicit approval:
+The doctor and the default live-test command are quota-free; doctor output explicitly says `Live inference: not run`. The manual pre-release compatibility gate consumes quota and requires explicit approval:
 
 ```bash
 AGY_LIVE=1 npm run test:agy-live

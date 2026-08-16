@@ -211,6 +211,36 @@ test("parses schema-constrained response and usage", async () => fixture(async (
   });
 }));
 
+test("unwraps one fenced schema-constrained JSON response", async () => fixture(async (root, agy) => {
+  await environment({ AGY_BIN: agy, FAKE_AGY_MODE: "fenced-response" }, async () => {
+    const result = await runAgy({
+      cwd: root,
+      prompt: "write",
+      schemaPath: await schema(root),
+    });
+    assert.deepEqual(result.response, {
+      prose: "ok",
+      consulted_samples: [],
+      warnings: [],
+      assumptions: [],
+    });
+  });
+}));
+
+test("rejects prose surrounding or multiple fenced response objects", async () => fixture(async (root, agy) => {
+  const schemaPath = await schema(root);
+  for (const response of [
+    'Result:\n```json\n{"prose":"ok"}\n```',
+    '```json\n{"prose":"one"}\n```\n```json\n{"prose":"two"}\n```',
+  ]) {
+    const output = join(root, "response.json");
+    await writeFile(output, JSON.stringify({ response, usage: {} }));
+    await environment({ AGY_BIN: agy, FAKE_AGY_RESPONSE_FILE: output }, async () => {
+      await assert.rejects(runAgy({ cwd: root, prompt: "write", schemaPath }), /schema-constrained.*JSON/i);
+    });
+  }
+}));
+
 test("rejects missing response or usage, malformed structured response, and empty success", async () => fixture(async (root, agy) => {
   for (const [mode, pattern] of [
     ["missing-response", /missing.*response/i],

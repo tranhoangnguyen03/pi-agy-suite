@@ -128,6 +128,20 @@ export async function runAgyProcess(
   }
 }
 
+function parseStructuredResponse(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    const fenced = raw.trim().match(/^```(?:json)?\s*\n([\s\S]*?)\n```$/i);
+    if (!fenced) throw new Error("AGY response was not schema-constrained JSON.");
+    try {
+      return JSON.parse(fenced[1]!);
+    } catch {
+      throw new Error("AGY response was not schema-constrained JSON.");
+    }
+  }
+}
+
 function compareVersions(left: string, right: string): number {
   const a = left.split(".").map(Number);
   const b = right.split(".").map(Number);
@@ -222,12 +236,7 @@ export async function runAgy({
       throw new Error("AGY response must contain schema-constrained JSON text.");
     }
 
-    let response: unknown;
-    try {
-      response = JSON.parse(rawResponse);
-    } catch {
-      throw new Error("AGY response was not schema-constrained JSON.");
-    }
+    const response = parseStructuredResponse(rawResponse);
     if (!response || typeof response !== "object" || Array.isArray(response)) {
       throw new Error("AGY response was not a JSON object.");
     }

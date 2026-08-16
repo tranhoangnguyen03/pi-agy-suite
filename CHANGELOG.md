@@ -14,6 +14,13 @@ All notable changes to this project will be documented here.
 - Explicit-source temporary bundling with path, traversal, symlink, manifest, and cleanup checks.
 - A bounded AGY runner requiring AGY 1.1.10+, the exact selected model, a fresh project, plan mode, sandboxing, slash-command disablement, timeout, cancellation, and structured output.
 - Credential-free CI and a guarded manual AGY live-test script.
+- Compatibility handling for a single schema-constrained JSON object wrapped in a Markdown fence.
+
+### Fixed
+
+- `agy_prose_edit` now treats empty provider-generated optional strings as omitted, so a valid `path` target does not falsely conflict with an empty `text` field.
+- Conductors now distinguish visible prose from explicit file output and never retry quota-consuming AGY failures without asking.
+- `/agy-suite-doctor` now says explicitly that it did not run live inference.
 
 ### Compatibility
 

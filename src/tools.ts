@@ -30,8 +30,8 @@ const draftSchema = Type.Object({
 });
 
 const editSchema = Type.Object({
-  text: Type.Optional(Type.String()),
-  path: Type.Optional(Type.String()),
+  text: Type.Optional(Type.String({ description: "Pasted prose to edit; omit when using path" })),
+  path: Type.Optional(Type.String({ description: "Workspace file to edit; omit when using text" })),
   instruction: Type.Optional(Type.String()),
   context: Type.Optional(Type.String()),
   sources: Type.Optional(Type.Array(Type.String())),
@@ -40,6 +40,14 @@ const editSchema = Type.Object({
 
 type DraftInput = Static<typeof draftSchema>;
 type EditInput = Static<typeof editSchema>;
+
+function nonempty(value: string | undefined): string | undefined {
+  return value?.trim() ? value : undefined;
+}
+
+function modelId(value: string | undefined): string | undefined {
+  return value?.trim() || undefined;
+}
 
 export interface ProseToolDependencies {
   runAgy: typeof runAgy;
@@ -144,7 +152,8 @@ export function registerProseTools(
     "Use explicit user-named files with agy_prose_draft or agy_prose_edit without unnecessary discovery.",
     "For intent-only prose requests, inspect nearby project files and pass only the smallest relevant explicit source set to agy_prose_draft or agy_prose_edit.",
     "Never pass whole directories, secrets, unrelated files, or project instructions to AGY prose tools.",
-    "Present AGY prose unchanged; write it verbatim only when the user requested an output path, and never overwrite without explicit replacement intent.",
+    "Present AGY prose unchanged. If the user requested an output path, use Pi's write tool to save it verbatim; otherwise do not create a file. Never overwrite without explicit replacement intent.",
+    "Do not automatically retry an AGY failure because retries consume quota; report the error and ask before trying again.",
   ];
 
   pi.registerTool({
@@ -157,9 +166,9 @@ export function registerProseTools(
     async execute(_id, params: DraftInput, signal, _update, ctx) {
       return executeProse(ctx.cwd, {
         sources: params.sources,
-        model: params.model,
+        model: modelId(params.model),
         signal,
-        prompt: { kind: "draft", brief: params.brief, context: params.context },
+        prompt: { kind: "draft", brief: params.brief, context: nonempty(params.context) },
       }, dependencies);
     },
   });
@@ -172,16 +181,22 @@ export function registerProseTools(
     promptGuidelines,
     parameters: editSchema,
     async execute(_id, params: EditInput, signal, _update, ctx) {
-      if ((params.text === undefined) === (params.path === undefined)) {
-        throw new Error("Provide exactly one edit target: text or path.");
+      const text = nonempty("text" in params ? params.text : undefined);
+      const path = nonempty("path" in params ? params.path : undefined);
+      if ((text === undefined) === (path === undefined)) {
+        throw new Error("Provide exactly one non-empty edit target: text or path.");
       }
       return executeProse(ctx.cwd, {
-        targetPath: params.path,
-        inlineText: params.text,
+        targetPath: path,
+        inlineText: text,
         sources: params.sources,
-        model: params.model,
+        model: modelId(params.model),
         signal,
-        prompt: { kind: "edit", instruction: params.instruction, context: params.context },
+        prompt: {
+          kind: "edit",
+          instruction: nonempty(params.instruction),
+          context: nonempty(params.context),
+        },
       }, dependencies);
     },
   });

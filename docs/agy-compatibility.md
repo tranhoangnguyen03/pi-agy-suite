@@ -49,7 +49,7 @@ The runner depends on:
 - `--sandbox` applies in print mode.
 - `agy --help` may write usage text to stderr; the doctor checks both stdout and stderr.
 - JSON output contains the response and usage information consumed by the runner.
-- `--json-schema` constrains the final response.
+- `--json-schema` constrains the final response. AGY 1.1.13 may still wrap one valid schema object in a Markdown `json` fence; the runner unwraps exactly that form while rejecting surrounding prose or multiple objects.
 - A prompt passed with `-p` is accepted as one argv value without reading stdin.
 - A successful inference returns nonempty stdout.
 - Cancellation can terminate the AGY child process tree.
@@ -98,4 +98,4 @@ When AGY is updated:
 7. Update this compatibility matrix.
 8. Record the verified AGY version in `CHANGELOG.md`.
 
-No AGY credentials are stored in CI. The live test is a manual pre-release gate and is skipped unless `AGY_LIVE=1` is set. Running it requires explicit approval because it consumes inference quota.
+No AGY credentials are stored in CI. The live test is a manual pre-release gate and is skipped unless `AGY_LIVE=1` is set. Running it requires explicit approval because it consumes inference quota. A failed AGY call may also have consumed quota, so conductors report failures instead of retrying automatically.

@@ -77,6 +77,72 @@ test("registers exact draft and edit schemas", () => {
   assert.deepEqual(edit.parameters.required ?? [], []);
 });
 
+test("draft treats empty optional strings as omitted", async () => {
+  let model: string | undefined = "unseen";
+  let prompt = "";
+  const { pi, tools } = fakePi();
+  registerProseTools(pi, dependencies(async (options) => {
+    model = options.model;
+    prompt = options.prompt;
+    return success();
+  }));
+
+  await tools.get("agy_prose_draft")!.execute(
+    "1",
+    { brief: "Draft", context: "", model: "" },
+    undefined,
+    undefined,
+    { cwd: process.cwd() },
+  );
+
+  assert.equal(model, undefined);
+  assert.doesNotMatch(prompt, /Context:/);
+});
+
+test("draft and edit trim model identifiers", async () => {
+  const models: Array<string | undefined> = [];
+  const { pi, tools } = fakePi();
+  registerProseTools(pi, dependencies(async (options) => {
+    models.push(options.model);
+    return success();
+  }));
+
+  await tools.get("agy_prose_draft")!.execute(
+    "1",
+    { brief: "Draft", model: "  gemini-3.1-pro-low  " },
+    undefined,
+    undefined,
+    { cwd: process.cwd() },
+  );
+  await tools.get("agy_prose_edit")!.execute(
+    "2",
+    { text: "rough", model: "  gemini-3.1-pro-low  " },
+    undefined,
+    undefined,
+    { cwd: process.cwd() },
+  );
+
+  assert.deepEqual(models, ["gemini-3.1-pro-low", "gemini-3.1-pro-low"]);
+});
+
+test("edit treats empty optional strings as omitted", async () => {
+  let calls = 0;
+  const { pi, tools } = fakePi();
+  registerProseTools(pi, dependencies(async () => { calls += 1; return success(); }));
+  const edit = tools.get("agy_prose_edit")!;
+
+  const result = await edit.execute(
+    "1",
+    { path: "README.md", text: "", instruction: "", context: "", model: "" },
+    undefined,
+    undefined,
+    { cwd: process.cwd() },
+  );
+
+  assert.equal(result.content[0]?.text, "Clean prose.");
+  assert.equal(calls, 1);
+});
+
 test("edit rejects both or neither target before AGY starts", async () => {
   let calls = 0;
   const { pi, tools } = fakePi();
