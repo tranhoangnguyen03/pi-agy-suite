@@ -55,9 +55,11 @@ export async function resolveProseProfile({
 
   const sampleDirectories: string[] = [];
   const sampleFiles: string[] = [];
+  const seenSampleDirectories = new Set<string>();
   for (const proseDir of [globalProseDir, localProseDir]) {
     const directory = await profileAsset(proseDir, join(proseDir, "writing-samples"), "directory");
-    if (directory) {
+    if (directory && !seenSampleDirectories.has(directory)) {
+      seenSampleDirectories.add(directory);
       sampleDirectories.push(directory);
       sampleFiles.push(...await samplesIn(directory));
     }

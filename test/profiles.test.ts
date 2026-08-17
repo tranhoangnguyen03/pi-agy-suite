@@ -72,6 +72,21 @@ test("returns global then local writing samples and excludes README metadata", a
   ]);
 }));
 
+test("deduplicates writing samples when profile roots resolve together", async () => fixture(async (root) => {
+  const proseDir = join(root, "shared");
+  const samplesDir = join(proseDir, "writing-samples");
+  await mkdir(samplesDir, { recursive: true });
+  await writeFile(join(samplesDir, "sample.md"), "sample");
+
+  const profile = await resolveProseProfile({
+    globalProseDir: proseDir,
+    localProseDir: proseDir,
+  });
+
+  assert.deepEqual(profile.sampleDirectories, [await realpath(samplesDir)]);
+  assert.deepEqual(profile.sampleFiles, [join(await realpath(samplesDir), "sample.md")]);
+}));
+
 test("returns existing empty writing-sample directories", async () => fixture(async (root) => {
   const globalDir = join(root, "global");
   const samplesDir = join(globalDir, "writing-samples");

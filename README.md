@@ -19,10 +19,13 @@ The package is not published yet. After release:
 pi install npm:@tranhoangnguyen03/pi-agy-suite
 ```
 
-For isolated local verification from the project you want Pi to inspect:
+For deterministic isolated verification:
 
 ```bash
 SUITE=/absolute/path/to/pi-agy-suite
+TESTDIR="${TMPDIR:-/tmp}/pi-agy-manual-test"
+node "$SUITE/scripts/manual-workspace.mjs" setup "$TESTDIR"
+cd "$TESTDIR"
 pi \
   --no-extensions --extension "$SUITE/index.ts" \
   --no-skills \
@@ -34,7 +37,15 @@ pi \
   --no-session
 ```
 
-This loads only this extension's runtime and prompt templates. `write` is enabled only so Pi can save prose when the request names an output path; the AGY subprocess remains read-only. Use `/reload` after changing extension or profile files.
+`setup` replaces only the named disposable test directory, creates a clean voice guide and real sample, and records a nonempty input checksum baseline. The Pi command loads only this extension's runtime and prompt templates. `write` is enabled only so Pi can save prose when the request names an output path; the AGY subprocess remains read-only.
+
+After both manual draft/edit calls, exit Pi and verify the mechanics without inference:
+
+```bash
+node "$SUITE/scripts/manual-workspace.mjs" verify "$TESTDIR"
+```
+
+Verification fails unless both output files exist and every source/profile input still matches its setup checksum. Use `/reload` after changing extension or profile files.
 
 ## Public interfaces
 
@@ -80,7 +91,7 @@ If an AGY call fails, assume it may already have consumed quota. The conductor r
 /agy-suite-doctor
 ```
 
-Initialization creates missing profile files and never overwrites existing ones. The doctor checks AGY version, required flags, exact default-model availability, profiles, and temporary-workspace readiness without inference quota.
+Initialization creates missing profile files and never overwrites existing ones. The doctor checks AGY version, required flags, exact default-model availability, voice profile, actual global/local Markdown sample-file counts, and temporary-workspace readiness without inference quota. `README.md` metadata does not count as a sample.
 
 ## Prose profiles
 

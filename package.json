@@ -9,6 +9,7 @@
     "index.ts",
     "src",
     "prompts",
+    "scripts/manual-workspace.mjs",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",

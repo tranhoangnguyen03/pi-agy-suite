@@ -1,4 +1,5 @@
 import { realpath, stat } from "node:fs/promises";
+import { isAbsolute, relative, sep } from "node:path";
 import {
   DEFAULT_AGY_MODEL,
   MINIMUM_AGY_VERSION,
@@ -30,6 +31,11 @@ interface DoctorOptions {
 export interface DoctorReport {
   ok: boolean;
   text: string;
+}
+
+function within(parent: string, child: string): boolean {
+  const path = relative(parent, child);
+  return path === "" || (path !== ".." && !path.startsWith(`..${sep}`) && !isAbsolute(path));
 }
 
 async function directory(path: string): Promise<boolean> {
@@ -67,9 +73,11 @@ export async function runDoctor({
   const flags = REQUIRED_FLAGS.map((flag) => ({ flag, present: helpTokens.has(flag) }));
   const canonicalGlobal = await realpath(globalProseDir).catch(() => globalProseDir);
   const canonicalLocal = await realpath(localProseDir).catch(() => localProseDir);
-  const localVoice = profile.voiceGuide?.startsWith(canonicalLocal) === true;
-  const globalSamples = profile.sampleDirectories.some((path) => path.startsWith(canonicalGlobal));
-  const localSamples = profile.sampleDirectories.some((path) => path.startsWith(canonicalLocal));
+  const localVoice = profile.voiceGuide ? within(canonicalLocal, profile.voiceGuide) : false;
+  const localSamples = profile.sampleFiles.filter((path) => within(canonicalLocal, path)).length;
+  const globalSamples = profile.sampleFiles.filter((path) =>
+    within(canonicalGlobal, path) && !within(canonicalLocal, path)
+  ).length;
   const temporaryReady = await directory(process.env.TMPDIR ?? "/tmp");
   const ok = versionResult.code === 0 && helpResult.code === 0 && modelsResult.code === 0 &&
     supported && modelAvailable && flags.every(({ present }) => present) && temporaryReady;
@@ -84,8 +92,8 @@ export async function runDoctor({
       `Default model ${DEFAULT_AGY_MODEL}: ${modelAvailable ? "available" : "missing"}`,
       ...flags.map(({ flag, present }) => `${flag}: ${present ? "present" : "missing"}`),
       `Voice guide: ${profile.voiceGuide ? localVoice ? "local" : "global" : "missing"}`,
-      `Global samples: ${globalSamples ? "present" : "missing"}`,
-      `Local samples: ${localSamples ? "present" : "missing"}`,
+      `Global samples: ${globalSamples} ${globalSamples === 1 ? "file" : "files"}`,
+      `Local samples: ${localSamples} ${localSamples === 1 ? "file" : "files"}`,
       `Temporary workspace: ${temporaryReady ? "ready" : "unavailable"}`,
       "Live inference: not run (doctor is quota-free)",
     ].join("\n"),

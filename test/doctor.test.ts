@@ -36,8 +36,10 @@ test("reports binary, version, flags, model, and profile state without inference
   const localDir = join(root, "local");
   const record = join(root, "calls.jsonl");
   await mkdir(join(globalDir, "writing-samples"), { recursive: true });
-  await mkdir(localDir);
+  await writeFile(join(globalDir, "writing-samples", "sample.md"), "sample");
+  await mkdir(join(localDir, "writing-samples"), { recursive: true });
   await writeFile(join(localDir, "voice.md"), "voice");
+  await writeFile(join(localDir, "writing-samples", "README.md"), "metadata");
 
   await environment({ AGY_BIN: agy, FAKE_AGY_RECORD: record }, async () => {
     const report = await runDoctor({ globalProseDir: globalDir, localProseDir: localDir });
@@ -48,8 +50,8 @@ test("reports binary, version, flags, model, and profile state without inference
     assert.match(report.text, /status: supported/i);
     assert.match(report.text, /gemini-3\.1-pro-low.*available/i);
     assert.match(report.text, /voice guide.*local/i);
-    assert.match(report.text, /global samples.*present/i);
-    assert.match(report.text, /local samples.*missing/i);
+    assert.match(report.text, /global samples: 1 file/i);
+    assert.match(report.text, /local samples: 0 files/i);
     assert.match(report.text, /live inference.*not run/i);
     for (const flag of [
       "--model", "--mode", "--sandbox", "--new-project", "--add-dir", "--print-timeout",
@@ -58,6 +60,32 @@ test("reports binary, version, flags, model, and profile state without inference
 
     const calls = await (await import("node:fs/promises")).readFile(record, "utf8");
     assert.doesNotMatch(calls, /"-p"|"--print"/);
+  });
+}));
+
+test("classifies shared and prefix-overlapping profile roots without double-counting", async () => fixture(async (root, agy) => {
+  const globalDir = join(root, "prose");
+  const localDir = join(globalDir, "local");
+  await mkdir(join(globalDir, "writing-samples"), { recursive: true });
+  await mkdir(join(localDir, "writing-samples"), { recursive: true });
+  await writeFile(join(globalDir, "writing-samples", "global.md"), "global");
+  await writeFile(join(localDir, "writing-samples", "local.md"), "local");
+
+  await environment({ AGY_BIN: agy }, async () => {
+    const distinct = await runDoctor({ globalProseDir: globalDir, localProseDir: localDir });
+    assert.match(distinct.text, /global samples: 1 file/i);
+    assert.match(distinct.text, /local samples: 1 file/i);
+
+    const shared = await runDoctor({ globalProseDir: localDir, localProseDir: localDir });
+    assert.match(shared.text, /global samples: 0 files/i);
+    assert.match(shared.text, /local samples: 1 file/i);
+
+    const prefixGlobal = join(root, "prose-extra");
+    const prefixLocal = join(root, "prose");
+    await mkdir(prefixGlobal);
+    await writeFile(join(prefixGlobal, "voice.md"), "global voice");
+    const voice = await runDoctor({ globalProseDir: prefixGlobal, localProseDir: prefixLocal });
+    assert.match(voice.text, /voice guide: global/i);
   });
 }));
 

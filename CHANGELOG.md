@@ -20,7 +20,8 @@ All notable changes to this project will be documented here.
 
 - `agy_prose_edit` now treats empty provider-generated optional strings as omitted, so a valid `path` target does not falsely conflict with an empty `text` field.
 - Conductors now distinguish visible prose from explicit file output and never retry quota-consuming AGY failures without asking.
-- `/agy-suite-doctor` now says explicitly that it did not run live inference.
+- `/agy-suite-doctor` now says explicitly that it did not run live inference and reports actual Markdown sample-file counts instead of directory presence.
+- Added a deterministic disposable manual-workspace setup/verifier with clean fixtures, real samples, output checks, and source/profile checksums.
 
 ### Compatibility
 
