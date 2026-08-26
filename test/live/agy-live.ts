@@ -4,7 +4,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { withInputBundle } from "../../src/bundle.ts";
 import { runAgy } from "../../src/agy-runner.ts";
-import { buildEditPrompt, parseProseResponse, PROSE_RESULT_SCHEMA } from "../../src/prose.ts";
+import {
+  buildEditPrompt,
+  buildEditReaderPrompt,
+  parseProseResponse,
+  parseReaderResponse,
+  PROSE_RESULT_SCHEMA,
+  READER_RESULT_SCHEMA,
+} from "../../src/prose.ts";
 
 if (process.env.AGY_LIVE !== "1") {
   console.log("SKIPPED: set AGY_LIVE=1 to run the quota-consuming AGY live test.");
@@ -31,14 +38,25 @@ try {
     voiceGuide: join(profile, "voice.md"),
     sampleDirectories: [samples],
   }, async (bundle) => {
+    const readerSchemaPath = join(bundle.root, "reader-schema.json");
+    await writeFile(readerSchemaPath, JSON.stringify(READER_RESULT_SCHEMA));
+    const casting = await runAgy({
+      cwd: bundle.root,
+      prompt: buildEditReaderPrompt({ bundle }),
+      schemaPath: readerSchemaPath,
+      addDirs: [samples],
+    });
+    const reader = parseReaderResponse(casting.response);
+
     const schemaPath = join(bundle.root, "schema.json");
     await writeFile(schemaPath, JSON.stringify(PROSE_RESULT_SCHEMA));
     const result = await runAgy({
       cwd: bundle.root,
-      prompt: buildEditPrompt({ bundle }),
+      prompt: buildEditPrompt({ bundle, reader: reader.reader }),
       schemaPath,
       addDirs: [samples],
     });
+    assert.equal(casting.model, result.model);
     const prose = parseProseResponse(result.response);
     assert.ok(prose.prose.trim());
     assert.ok(Array.isArray(prose.consultedSamples));

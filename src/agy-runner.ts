@@ -6,7 +6,7 @@ import { spawn } from "node:child_process";
 import type { AgyRunResult } from "./types.ts";
 
 export const MINIMUM_AGY_VERSION = "1.1.10";
-export const DEFAULT_AGY_MODEL = "gemini-3.1-pro-low";
+export const DEFAULT_AGY_MODEL = "gemini-3.7-flash-high";
 const MAX_STDOUT_BYTES = 2 * 1024 * 1024;
 const MAX_STDERR_BYTES = 64 * 1024;
 
@@ -62,17 +62,23 @@ function boundedAppend(current: Buffer, chunk: Buffer, limit: number, tail = fal
     : tail ? combined.subarray(combined.length - limit) : combined.subarray(0, limit);
 }
 
-function terminate(child: ReturnType<typeof spawn>): void {
-  if (child.exitCode !== null || child.pid === undefined) return;
+function signalGroup(pid: number, name: NodeJS.Signals): void {
+  try {
+    process.kill(-pid, name);
+  } catch {
+    // The process group may already be gone.
+  }
+}
+
+function terminate(child: ReturnType<typeof spawn>): NodeJS.Timeout | undefined {
+  if (child.exitCode !== null || child.pid === undefined) return undefined;
   if (process.platform === "win32") {
     spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], { stdio: "ignore" });
-  } else {
-    try {
-      process.kill(-child.pid, "SIGTERM");
-    } catch {
-      child.kill("SIGTERM");
-    }
+    return undefined;
   }
+  const pid = child.pid;
+  signalGroup(pid, "SIGTERM");
+  return setTimeout(() => signalGroup(pid, "SIGKILL"), 250);
 }
 
 export async function runAgyProcess(
@@ -103,11 +109,14 @@ export async function runAgyProcess(
   });
 
   let timedOut = false;
+  let killTimer: NodeJS.Timeout | undefined;
   const timeout = options.timeoutMs === undefined ? undefined : setTimeout(() => {
     timedOut = true;
-    terminate(child);
+    killTimer ??= terminate(child);
   }, options.timeoutMs);
-  const abort = () => terminate(child);
+  const abort = () => {
+    killTimer ??= terminate(child);
+  };
   options.signal?.addEventListener("abort", abort, { once: true });
 
   try {

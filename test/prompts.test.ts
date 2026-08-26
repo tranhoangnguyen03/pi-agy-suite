@@ -23,5 +23,10 @@ for (const [name, tool] of [
     assert.match(template, /no output path.*requested.*not.*file.*created/is);
     assert.match(template, /explicit replacement intent.*overwrit/is);
     assert.match(template, /argument-hint: "\[intent and @sources\]"/);
+    assert.match(template, /reader/i);
+    assert.match(template, /auto/i);
+    assert.match(template, /quota|calls?/i);
+    assert.match(template, /one.*reader/i);
+    assert.match(template, /own voice/i);
   });
 }

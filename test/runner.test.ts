@@ -125,7 +125,7 @@ test("requires the exact requested model", async () => fixture(async (root, agy)
       cwd: root,
       prompt: "write",
       schemaPath: await schema(root),
-    }), /model.*gemini-3\.1-pro-low.*not available/i);
+    }), /model.*gemini-3\.7-flash-high.*not available/i);
   });
 }));
 
@@ -156,7 +156,7 @@ test("passes the secure compatibility argv contract with prompt as one argument"
     const args = calls.find((call) => call.includes("-p"));
     assert.ok(args);
     for (const pair of [
-      ["--model", "gemini-3.1-pro-low"],
+      ["--model", "gemini-3.7-flash-high"],
       ["--mode", "plan"],
       ["--output-format", "json"],
       ["--json-schema", schemaPath],
@@ -207,7 +207,7 @@ test("parses schema-constrained response and usage", async () => fixture(async (
       cache_read_tokens: 3,
     });
     assert.equal(result.version, "1.1.11");
-    assert.equal(result.model, "gemini-3.1-pro-low");
+    assert.equal(result.model, "gemini-3.7-flash-high");
   });
 }));
 
@@ -271,6 +271,50 @@ test("reports nonzero exits with bounded stderr", async () => fixture(async (roo
       assert.ok(Buffer.byteLength(error.message) < 70_000);
       return true;
     });
+  });
+}));
+
+test("timeout escalates when AGY ignores SIGTERM", async () => fixture(async (root, agy) => {
+  const ready = join(root, "ready");
+  await environment({ AGY_BIN: agy, FAKE_AGY_MODE: "ignore-term", FAKE_AGY_READY: ready }, async () => {
+    const started = Date.now();
+    await assert.rejects(runAgy({
+      cwd: root,
+      prompt: "write",
+      schemaPath: await schema(root),
+      timeoutMs: 1_000,
+    }), /timed out/i);
+    const elapsed = Date.now() - started;
+    assert.ok(await readFile(ready, "utf8"), "inference process did not install its SIGTERM handler");
+    assert.ok(elapsed >= 1_200, `SIGTERM was not ignored long enough to exercise escalation: ${elapsed}ms`);
+    assert.ok(elapsed < 3_000, "SIGKILL escalation was not bounded");
+  });
+}));
+
+test("timeout kills a SIGTERM-ignoring descendant after the AGY parent exits", async () => fixture(async (root, agy) => {
+  const childPidPath = join(root, "child.pid");
+  const childReady = join(root, "child.ready");
+  const heartbeat = join(root, "child.heartbeat");
+  await environment({
+    AGY_BIN: agy,
+    FAKE_AGY_MODE: "ignore-term-child",
+    FAKE_AGY_CHILD_PID: childPidPath,
+    FAKE_AGY_CHILD_READY: childReady,
+    FAKE_AGY_CHILD_HEARTBEAT: heartbeat,
+  }, async () => {
+    await assert.rejects(runAgy({
+      cwd: root,
+      prompt: "write",
+      schemaPath: await schema(root),
+      timeoutMs: 1_000,
+    }), /timed out/i);
+    assert.equal(await readFile(childReady, "utf8"), "ready");
+    const childPid = Number(await readFile(childPidPath, "utf8"));
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const first = await readFile(heartbeat, "utf8");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const second = await readFile(heartbeat, "utf8");
+    assert.equal(second, first, `descendant ${childPid} survived group SIGKILL`);
   });
 }));
 

@@ -25,7 +25,7 @@ if (args.includes("--version")) {
 }
 
 if (args[0] === "models") {
-  console.log(process.env.FAKE_AGY_MODELS ?? "gemini-3.1-pro-low\tGemini 3.1 Pro (Low)");
+  console.log(process.env.FAKE_AGY_MODELS ?? "gemini-3.7-flash-high\tGemini 3.7 Flash (High)");
   process.exit(0);
 }
 
@@ -46,7 +46,20 @@ if (process.env.FAKE_AGY_MODE === "nonzero") {
   process.exit(23);
 }
 
-if (process.env.FAKE_AGY_MODE === "sleep") {
+if (process.env.FAKE_AGY_MODE === "ignore-term") {
+  process.on("SIGTERM", () => {});
+  if (process.env.FAKE_AGY_READY) await writeFile(process.env.FAKE_AGY_READY, "ready");
+  setInterval(() => {}, 1000);
+} else if (process.env.FAKE_AGY_MODE === "ignore-term-child") {
+  const child = spawn(process.execPath, ["-e", `
+    const { writeFileSync } = require("node:fs");
+    process.on("SIGTERM", () => {});
+    writeFileSync(process.env.FAKE_AGY_CHILD_READY, "ready");
+    setInterval(() => writeFileSync(process.env.FAKE_AGY_CHILD_HEARTBEAT, String(Date.now())), 25);
+  `], { stdio: "ignore", env: process.env });
+  if (process.env.FAKE_AGY_CHILD_PID) await writeFile(process.env.FAKE_AGY_CHILD_PID, String(child.pid));
+  setInterval(() => {}, 1000);
+} else if (process.env.FAKE_AGY_MODE === "sleep") {
   const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], {
     stdio: "ignore",
   });

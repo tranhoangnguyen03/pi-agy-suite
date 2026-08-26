@@ -2,9 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildDraftPrompt,
+  buildDraftReaderPrompt,
   buildEditPrompt,
+  buildEditReaderPrompt,
   PROSE_RESULT_SCHEMA,
+  READER_RESULT_SCHEMA,
   parseProseResponse,
+  parseReaderResponse,
 } from "../src/prose.ts";
 import type { InputBundle } from "../src/types.ts";
 
@@ -78,6 +82,49 @@ test("edit prompt includes explicit instructions when provided", () => {
   assert.match(prompt, /Keep the ending/);
 });
 
+test("draft and edit prompts frame an explicit reader without assigning the reader's voice", () => {
+  const reader = "a curious general reader who values emotional restraint";
+  const draft = buildDraftPrompt({ brief: "Draft an essay", reader, bundle: bundle() });
+  const edit = buildEditPrompt({ reader, bundle: bundle() });
+
+  for (const prompt of [draft, edit]) {
+    assert.match(prompt, /speaks in its own voice/i);
+    assert.match(prompt, new RegExp(reader));
+    assert.match(prompt, /fully holds this reader's attention/i);
+    assert.doesNotMatch(prompt, /write like|imitate|in the style of/i);
+  }
+});
+
+test("casting prompts use task-specific reader questions without editing advice", () => {
+  const draft = buildDraftReaderPrompt({ brief: "Draft an essay", context: "For editors", bundle: bundle() });
+  const edit = buildEditReaderPrompt({ instruction: "Tighten it", context: "Keep warmth", bundle: bundle() });
+
+  assert.match(draft, /intended work.*clearest purpose.*reason to exist/is);
+  assert.match(draft, /Draft an essay/);
+  assert.match(edit, /existing work.*trying to reach at its best/is);
+  assert.match(edit, /target: \/tmp\/bundle\/inputs\/draft\.md/i);
+  for (const prompt of [draft, edit]) {
+    assert.match(prompt, /one concise reader profile/i);
+    assert.match(prompt, /not editing advice/i);
+    assert.match(prompt, /return only the JSON object/i);
+  }
+});
+
+test("reader schema and parser require a reader and hidden reason", () => {
+  assert.deepEqual(READER_RESULT_SCHEMA.required, ["reader", "reason"]);
+  assert.equal(READER_RESULT_SCHEMA.additionalProperties, false);
+  assert.deepEqual(parseReaderResponse({ reader: "attentive readers", reason: "They fit." }), {
+    reader: "attentive readers",
+    reason: "They fit.",
+  });
+  assert.throws(() => parseReaderResponse({ reader: "only" }), /invalid.*reader result/i);
+  assert.throws(() => parseReaderResponse({
+    reader: "attentive readers",
+    reason: "They fit.",
+    extra: "schema drift",
+  }), /invalid.*reader result/i);
+});
+
 test("result schema requires prose and hidden metadata", () => {
   assert.deepEqual(PROSE_RESULT_SCHEMA.required, [
     "prose",
@@ -101,4 +148,11 @@ test("parses the prose result contract and rejects drift", () => {
     assumptions: [],
   });
   assert.throws(() => parseProseResponse({ prose: "only" }), /invalid.*prose result/i);
+  assert.throws(() => parseProseResponse({
+    prose: "Clean prose.",
+    consulted_samples: [],
+    warnings: [],
+    assumptions: [],
+    extra: "schema drift",
+  }), /invalid.*prose result/i);
 });

@@ -13,12 +13,13 @@ agy_prose_draft / agy_prose_edit
     │  resolves profiles and creates a temporary explicit-input bundle
     ▼
 prose adapter
-    │  owns draft/edit semantics and the result schema
+    │  owns draft/edit semantics, reader casting, and result schemas
     ▼
 shared AGY runner
     │  enforces binary, version, exact model, sandbox, timeout, cancellation
     ▼
-fresh agy -p run (gemini-3.1-pro-low by default)
+one direct run, or a fresh casting run followed by generation
+    │  gemini-3.7-flash-high by default
     │
     ▼
 clean prose to Pi; provenance remains in tool details
@@ -29,7 +30,7 @@ clean prose to Pi; provenance remains in tool details
 - `index.ts` registers tools and deterministic commands.
 - `src/profiles.ts` resolves layered global/local prose profiles and initializes missing scaffolding without overwrites.
 - `src/bundle.ts` validates workspace-relative files, copies explicit inputs and the voice guide, writes the manifest, and owns cleanup.
-- `src/prose.ts` builds separate draft/edit instructions and validates the schema-constrained prose result.
+- `src/prose.ts` builds separate draft/edit and task-specific reader-casting prompts and validates both schema-constrained result types.
 - `src/agy-runner.ts` owns AGY discovery, compatibility preflight, subprocess bounds, secure argv construction, timeout, cancellation, and JSON-envelope parsing.
 - `src/tools.ts` composes those pieces into the two Pi-facing tools and keeps provenance in details.
 - `src/doctor.ts` checks the compatibility contract without starting inference.
@@ -42,8 +43,9 @@ clean prose to Pi; provenance remains in tool details
 3. Named files are canonicalized, required to be regular files inside the active workspace, and copied read-only into a temporary directory.
 4. The active voice guide is copied into that directory. Validated global/local writing-sample directories are exposed read-only with `--add-dir`.
 5. AGY runs from the temporary workspace in a fresh project-backed conversation, plan mode, and sandbox, with slash-command expansion disabled and a JSON Schema applied.
-6. AGY never receives the active project directory and never writes user output. Pi alone may write returned prose to an explicitly approved path.
-7. Temporary input and log directories are removed after the run. Oversized successful prose is retained in a private temporary output file and referenced from tool details/output truncation notice.
+6. Automatic casting and generation use separate fresh AGY invocations over the same bounded temporary bundle and exact model. An explicit reader skips casting.
+7. AGY never receives the active project directory and never writes user output. Pi alone may write returned prose to an explicitly approved path.
+8. Temporary input and log directories are removed after the run. Oversized successful prose is retained in a private temporary output file and referenced from tool details/output truncation notice.
 
 ## Compatibility boundary
 

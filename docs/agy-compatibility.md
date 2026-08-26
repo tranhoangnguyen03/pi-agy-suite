@@ -12,7 +12,8 @@ Authoritative upstream changelog: <https://github.com/google-antigravity/antigra
 | 1.1.8–1.1.9 | Unsupported | Structured output exists, but the later headless `--model`/`--effort` fix is absent. |
 | 1.1.10 | Minimum | Includes the headless model/effort selection fix required by the prose model contract. |
 | 1.1.11 | Development baseline | Initial implementation baseline; fake-runner contract passes. |
-| 1.1.13 | Verified | Doctor, fake-runner contracts, and the opt-in live suite pass. |
+| 1.1.13 | Historically verified | Doctor, fake-runner contracts, and the earlier one-call `gemini-3.1-pro-low` live suite passed. |
+| 1.1.21 | Current development baseline | Private schema-constrained model comparisons passed; the public automatic casting/editing live gate is pending. |
 
 Policy:
 
@@ -66,10 +67,10 @@ The extension checks `AGY_BIN`, then `agy` on `PATH`, then `~/.local/bin/agy`. A
 Default prose model:
 
 ```text
-gemini-3.1-pro-low
+gemini-3.7-flash-high
 ```
 
-If that model is not listed by `agy models`, the doctor and prose tools fail clearly. They never silently substitute another model. Individual calls may explicitly select another available AGY model.
+If that model is not listed by `agy models`, the doctor and prose tools fail clearly. They never silently substitute another model. Individual calls may explicitly select another available AGY model. In an automatic reader workflow, the exact selected model is used for both casting and generation.
 
 ## Known compatibility risks
 
@@ -93,7 +94,7 @@ When AGY is updated:
 2. Review changes in every known-risk category above.
 3. Run `/agy-suite-doctor`.
 4. Run unit and fake-runner compatibility tests.
-5. Run `AGY_LIVE=1 npm run test:agy-live` manually.
+5. Run `AGY_LIVE=1 npm run test:agy-live` manually; the current gate consumes one casting call and one editing call.
 6. Inspect sanitized structured output for schema/envelope drift.
 7. Update this compatibility matrix.
 8. Record the verified AGY version in `CHANGELOG.md`.

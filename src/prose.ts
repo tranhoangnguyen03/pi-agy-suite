@@ -1,7 +1,17 @@
 import { join } from "node:path";
-import type { InputBundle, ProseResult } from "./types.ts";
+import type { InputBundle, ProseResult, ReaderResult } from "./types.ts";
 
 export const DEFAULT_EDIT_INSTRUCTION = "Perform voice and prose tuning.";
+
+export const READER_RESULT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["reader", "reason"],
+  properties: {
+    reader: { type: "string", minLength: 1 },
+    reason: { type: "string", minLength: 1 },
+  },
+} as const;
 
 export const PROSE_RESULT_SCHEMA = {
   type: "object",
@@ -43,16 +53,22 @@ function joinBundlePath(root: string, path: string): string {
   return join(root, path);
 }
 
-export function buildDraftPrompt(options: PromptOptions & { brief: string }): string {
+function readerFrame(reader: string | undefined): string {
+  return reader
+    ? `\n\nThis work speaks in its own voice to ${reader}.\n\nReturn the complete version that most fully holds this reader's attention, whether that means preserving it or making only the changes the work truly earns.`
+    : "";
+}
+
+export function buildDraftPrompt(options: PromptOptions & { brief: string; reader?: string }): string {
   return `${sharedInstructions(options)}
 
 Draft objective:
 ${options.brief}
 
-You may create a fresh composition or perform a comprehensive redraft of supplied rough material.`;
+You may create a fresh composition or perform a comprehensive redraft of supplied rough material.${readerFrame(options.reader)}`;
 }
 
-export function buildEditPrompt(options: PromptOptions & { instruction?: string }): string {
+export function buildEditPrompt(options: PromptOptions & { instruction?: string; reader?: string }): string {
   const target = options.bundle.entries[0]?.bundledPath;
   if (!target) throw new Error("Edit bundle has no target.");
   return `${sharedInstructions(options)}
@@ -62,7 +78,47 @@ Return revised prose for this target: ${joinBundlePath(options.bundle.root, targ
 Edit objective:
 ${options.instruction ?? DEFAULT_EDIT_INSTRUCTION}
 
-By default, preserve facts, claims, quotations, citations, intended argument, and authorial position. You may improve voice, diction, rhythm, sentence construction, paragraph flow, clarity, and modest organization. Major restructuring, expansion, or compression requires explicit instruction.`;
+By default, preserve facts, claims, quotations, citations, intended argument, and authorial position. You may improve voice, diction, rhythm, sentence construction, paragraph flow, clarity, and modest organization. Major restructuring, expansion, or compression requires explicit instruction.${readerFrame(options.reader)}`;
+}
+
+const CASTING_CONTRACT = `Return one concise reader profile and a brief reason. The reader supplies attention and taste; the work owns its voice. This is casting, not editing advice or a style-imitation request.`;
+
+export function buildDraftReaderPrompt(options: PromptOptions & { brief: string }): string {
+  return `${sharedInstructions(options)}
+
+Draft objective:
+${options.brief}
+
+What reader would give this intended work its clearest purpose and strongest reason to exist?
+${CASTING_CONTRACT}`;
+}
+
+export function buildEditReaderPrompt(options: PromptOptions & { instruction?: string }): string {
+  const target = options.bundle.entries[0]?.bundledPath;
+  if (!target) throw new Error("Edit bundle has no target.");
+  return `${sharedInstructions(options)}
+
+Read the complete existing work at this target: ${joinBundlePath(options.bundle.root, target)}.
+Editing intent: ${options.instruction ?? DEFAULT_EDIT_INSTRUCTION}
+
+What reader is this existing work trying to reach at its best?
+${CASTING_CONTRACT}`;
+}
+
+function exactKeys(value: Record<string, unknown>, expected: string[]): boolean {
+  const actual = Object.keys(value).sort();
+  return actual.length === expected.length && actual.every((key, index) => key === expected[index]);
+}
+
+export function parseReaderResponse(response: Record<string, unknown>): ReaderResult {
+  if (
+    !exactKeys(response, ["reader", "reason"]) ||
+    typeof response.reader !== "string" || !response.reader.trim() ||
+    typeof response.reason !== "string" || !response.reason.trim()
+  ) {
+    throw new Error("Invalid AGY reader result contract.");
+  }
+  return { reader: response.reader.trim(), reason: response.reason.trim() };
 }
 
 function strings(value: unknown): value is string[] {
@@ -71,6 +127,7 @@ function strings(value: unknown): value is string[] {
 
 export function parseProseResponse(response: Record<string, unknown>): ProseResult {
   if (
+    !exactKeys(response, ["assumptions", "consulted_samples", "prose", "warnings"]) ||
     typeof response.prose !== "string" || response.prose.length === 0 ||
     !strings(response.consulted_samples) ||
     !strings(response.warnings) ||

@@ -15,6 +15,8 @@ All notable changes to this project will be documented here.
 - A bounded AGY runner requiring AGY 1.1.10+, the exact selected model, a fresh project, plan mode, sandboxing, slash-command disablement, timeout, cancellation, and structured output.
 - Credential-free CI and a guarded manual AGY live-test script.
 - Compatibility handling for a single schema-constrained JSON object wrapped in a Markdown fence.
+- One-reader drafting/editing workflows: automatic edit casting by default, opt-in automatic draft casting, and one-call explicit reader profiles.
+- A sanitized binary reader-judgment guide that treats word count as descriptive and model output as reviewable rather than guaranteed improvement.
 
 ### Fixed
 
@@ -25,14 +27,17 @@ All notable changes to this project will be documented here.
 
 ### Compatibility
 
-- Default model: `gemini-3.1-pro-low`.
+- Default model: `gemini-3.7-flash-high`.
 - Minimum AGY: 1.1.10.
 - Initial development baseline: AGY 1.1.11; verified local baseline: AGY 1.1.13.
-- Live AGY verification: passed on AGY 1.1.13 with `gemini-3.1-pro-low`.
+- Historical live AGY verification: passed on AGY 1.1.13 with `gemini-3.1-pro-low` before the reader-casting/default-model change.
+- Release live verification for automatic casting plus editing with `gemini-3.7-flash-high`: pending the approval-gated pre-release run.
 
 ### Known limitations
 
 - V1 supports prose drafting and editing only.
+- Automatic reader casting adds one quota-consuming AGY call; explicit reader profiles and ordinary drafts use one call.
+- Prose quality remains model- and input-dependent; review output before replacing source text.
 - AGY receives explicit copied inputs and configured writing-sample directories; source-parent directory access and relative-link resolution are out of scope.
 - No generic backend interface, document-role taxonomy, research tool, image tool, or automatic conversation continuity.
 - On AGY 1.1.13, `--mode plan` has no effect when slash-command expansion is disabled; read-only copies, sandboxing, explicit no-write instructions, and headless permission denial provide the write boundary instead.

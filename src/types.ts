@@ -32,3 +32,8 @@ export interface ProseResult {
   warnings: string[];
   assumptions: string[];
 }
+
+export interface ReaderResult {
+  reader: string;
+  reason: string;
+}

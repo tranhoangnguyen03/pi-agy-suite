@@ -48,7 +48,7 @@ test("reports binary, version, flags, model, and profile state without inference
     assert.match(report.text, /installed: 1\.1\.11/i);
     assert.match(report.text, /minimum: 1\.1\.10/i);
     assert.match(report.text, /status: supported/i);
-    assert.match(report.text, /gemini-3\.1-pro-low.*available/i);
+    assert.match(report.text, /gemini-3\.7-flash-high.*available/i);
     assert.match(report.text, /voice guide.*local/i);
     assert.match(report.text, /global samples: 1 file/i);
     assert.match(report.text, /local samples: 0 files/i);
@@ -116,7 +116,7 @@ test("reports missing binary, old version, missing flag, and missing model", asy
     assert.equal(report.ok, false);
     assert.match(report.text, /Installed: 1\.1\.9[\s\S]*Status: unsupported/i);
     assert.match(report.text, /--mode.*missing/i);
-    assert.match(report.text, /gemini-3\.1-pro-low.*missing/i);
+    assert.match(report.text, /gemini-3\.7-flash-high.*missing/i);
   });
 }));
 

@@ -14,7 +14,8 @@
     "CHANGELOG.md",
     "LICENSE",
     "docs/architecture.md",
-    "docs/agy-compatibility.md"
+    "docs/agy-compatibility.md",
+    "docs/evaluating-prose.md"
   ],
   "keywords": [
     "pi-package",
