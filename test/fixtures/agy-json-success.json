@@ -1,0 +1,8 @@
+{
+  "response": "{\"prose\":\"Clean prose.\",\"consulted_samples\":[\"sample.md\"],\"warnings\":[],\"assumptions\":[]}",
+  "usage": {
+    "input_tokens": 12,
+    "output_tokens": 8,
+    "cache_read_tokens": 3
+  }
+}
