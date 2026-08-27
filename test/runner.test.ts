@@ -211,6 +211,30 @@ test("parses schema-constrained response and usage", async () => fixture(async (
   });
 }));
 
+test("strips AGY-owned finish display fields from schema-constrained results", async () => fixture(async (root, agy) => {
+  const output = join(root, "response.json");
+  await writeFile(output, JSON.stringify({
+    response: JSON.stringify({
+      reader: "attentive readers",
+      reason: "They fit.",
+      toolAction: "Submitting reader profile",
+      toolSummary: "Submit reader profile and reason",
+    }),
+    usage: {},
+  }));
+  await environment({ AGY_BIN: agy, FAKE_AGY_RESPONSE_FILE: output }, async () => {
+    const result = await runAgy({
+      cwd: root,
+      prompt: "cast",
+      schemaPath: await schema(root),
+    });
+    assert.deepEqual(result.response, {
+      reader: "attentive readers",
+      reason: "They fit.",
+    });
+  });
+}));
+
 test("unwraps one fenced schema-constrained JSON response", async () => fixture(async (root, agy) => {
   await environment({ AGY_BIN: agy, FAKE_AGY_MODE: "fenced-response" }, async () => {
     const result = await runAgy({

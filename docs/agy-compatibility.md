@@ -13,7 +13,8 @@ Authoritative upstream changelog: <https://github.com/google-antigravity/antigra
 | 1.1.10 | Minimum | Includes the headless model/effort selection fix required by the prose model contract. |
 | 1.1.11 | Development baseline | Initial implementation baseline; fake-runner contract passes. |
 | 1.1.13 | Historically verified | Doctor, fake-runner contracts, and the earlier one-call `gemini-3.1-pro-low` live suite passed. |
-| 1.1.21 | Current development baseline | Private schema-constrained model comparisons passed; the public automatic casting/editing live gate is pending. |
+| 1.1.21 | Development baseline | Private schema-constrained model comparisons passed. |
+| 1.1.22 | Current development baseline | The first public casting call exposed AGY-owned finish display fields; transport normalization is covered locally and the full live gate is pending. |
 
 Policy:
 
@@ -50,7 +51,7 @@ The runner depends on:
 - `--sandbox` applies in print mode.
 - `agy --help` may write usage text to stderr; the doctor checks both stdout and stderr.
 - JSON output contains the response and usage information consumed by the runner.
-- `--json-schema` constrains the final response. AGY 1.1.13 may still wrap one valid schema object in a Markdown `json` fence; the runner unwraps exactly that form while rejecting surrounding prose or multiple objects.
+- `--json-schema` constrains the final response. AGY 1.1.13 may still wrap one valid schema object in a Markdown `json` fence; the runner unwraps exactly that form while rejecting surrounding prose or multiple objects. AGY 1.1.22 may append its own `toolAction` and `toolSummary` display fields to the finish result; the runner removes only those known operational fields before enforcing the exact extension schema.
 - A prompt passed with `-p` is accepted as one argv value without reading stdin.
 - A successful inference returns nonempty stdout.
 - Cancellation can terminate the AGY child process tree.

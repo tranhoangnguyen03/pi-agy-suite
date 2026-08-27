@@ -24,6 +24,7 @@ All notable changes to this project will be documented here.
 - Conductors now distinguish visible prose from explicit file output and never retry quota-consuming AGY failures without asking.
 - `/agy-suite-doctor` now says explicitly that it did not run live inference and reports actual Markdown sample-file counts instead of directory presence.
 - Added a deterministic disposable manual-workspace setup/verifier with clean fixtures, real samples, output checks, and source/profile checksums.
+- The runner now removes AGY-owned `toolAction` and `toolSummary` display fields before validating the exact prose/reader result contract.
 
 ### Compatibility
 
@@ -31,7 +32,7 @@ All notable changes to this project will be documented here.
 - Minimum AGY: 1.1.10.
 - Initial development baseline: AGY 1.1.11; verified local baseline: AGY 1.1.13.
 - Historical live AGY verification: passed on AGY 1.1.13 with `gemini-3.1-pro-low` before the reader-casting/default-model change.
-- Release live verification for automatic casting plus editing with `gemini-3.7-flash-high`: pending the approval-gated pre-release run.
+- Release live verification for automatic casting plus editing with `gemini-3.7-flash-high`: pending; the first AGY 1.1.22 casting attempt exposed display-field drift and stopped before editing.
 
 ### Known limitations
 

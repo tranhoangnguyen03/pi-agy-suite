@@ -151,6 +151,11 @@ function parseStructuredResponse(raw: string): unknown {
   }
 }
 
+function stripAgyDisplayFields(response: Record<string, unknown>): Record<string, unknown> {
+  const { toolAction: _toolAction, toolSummary: _toolSummary, ...result } = response;
+  return result;
+}
+
 function compareVersions(left: string, right: string): number {
   const a = left.split(".").map(Number);
   const b = right.split(".").map(Number);
@@ -255,7 +260,7 @@ export async function runAgy({
       throw new Error("AGY usage must be an object.");
     }
     return {
-      response: response as Record<string, unknown>,
+      response: stripAgyDisplayFields(response as Record<string, unknown>),
       usage: usage as Record<string, unknown>,
       version,
       model,
