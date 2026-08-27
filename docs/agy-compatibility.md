@@ -14,7 +14,7 @@ Authoritative upstream changelog: <https://github.com/google-antigravity/antigra
 | 1.1.11 | Development baseline | Initial implementation baseline; fake-runner contract passes. |
 | 1.1.13 | Historically verified | Doctor, fake-runner contracts, and the earlier one-call `gemini-3.1-pro-low` live suite passed. |
 | 1.1.21 | Development baseline | Private schema-constrained model comparisons passed. |
-| 1.1.22 | Current development baseline | The first public casting call exposed AGY-owned finish display fields; transport normalization is covered locally and the full live gate is pending. |
+| 1.1.22 | Verified 2026-08-27 | The automatic casting/editing live gate passed with `gemini-3.7-flash-high` after normalizing AGY-owned finish display fields. |
 
 Policy:
 

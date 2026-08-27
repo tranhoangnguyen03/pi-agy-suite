@@ -13,7 +13,7 @@ Install AGY using Google's official instructions, run `agy` once to authenticate
 
 ## Install
 
-The package is not published yet. After release:
+Install from npm:
 
 ```bash
 pi install npm:pi-agy-suite

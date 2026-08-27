@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented here.
 
-## 0.1.0 - Unreleased
+## 0.1.0 - 2026-08-27
 
 ### Added
 
@@ -32,7 +32,7 @@ All notable changes to this project will be documented here.
 - Minimum AGY: 1.1.10.
 - Initial development baseline: AGY 1.1.11; verified local baseline: AGY 1.1.13.
 - Historical live AGY verification: passed on AGY 1.1.13 with `gemini-3.1-pro-low` before the reader-casting/default-model change.
-- Release live verification for automatic casting plus editing with `gemini-3.7-flash-high`: pending; the first AGY 1.1.22 casting attempt exposed display-field drift and stopped before editing.
+- Release live verification on 2026-08-27: automatic casting plus editing passed on AGY 1.1.22 with `gemini-3.7-flash-high` after normalizing AGY-owned finish display fields.
 
 ### Known limitations
 
