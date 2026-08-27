@@ -1,5 +1,5 @@
 {
-  "name": "@tranhoangnguyen03/pi-agy-suite",
+  "name": "pi-agy-suite",
   "version": "0.1.0",
   "description": "Pi prose drafting and editing tools powered by fresh Antigravity CLI runs.",
   "type": "module",

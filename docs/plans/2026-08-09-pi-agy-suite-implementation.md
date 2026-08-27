@@ -83,7 +83,7 @@ Expected: failure because the package, dependencies, and entry point do not exis
 
 Create `package.json` with:
 
-- name `@tranhoangnguyen03/pi-agy-suite`;
+- name `pi-agy-suite`;
 - initial version `0.1.0`;
 - `type: module`;
 - `main` and `exports` pointing to `./index.ts`;
@@ -685,7 +685,7 @@ After review, merge to `main`, create tag `v0.1.0`, and push it.
 
 The user runs `npm login` in their terminal if needed. Do not collect or handle npm credentials in Pi.
 
-**Step 5: Publish scoped public package**
+**Step 5: Publish public package**
 
 ```bash
 npm publish --access public
@@ -694,8 +694,8 @@ npm publish --access public
 **Step 6: Verify installation from the registry**
 
 ```bash
-npm view @tranhoangnguyen03/pi-agy-suite version
-pi -e npm:@tranhoangnguyen03/pi-agy-suite
+npm view pi-agy-suite version
+pi -e npm:pi-agy-suite
 ```
 
 Expected: version `0.1.0` and a successful temporary Pi load.

@@ -4,7 +4,7 @@
 
 ## Product intent
 
-`@tranhoangnguyen03/pi-agy-suite` is a Pi extension that lets a GPT- or Claude-driven Pi session delegate prose composition to a fresh, bounded Gemini 3.x run through the official Antigravity CLI (`agy`). The primary Pi model remains the conductor: it understands the user's intent, discovers or validates relevant materials, constructs an explicit request, invokes AGY, and optionally writes the returned prose to a user-approved path.
+`pi-agy-suite` is a Pi extension that lets a GPT- or Claude-driven Pi session delegate prose composition to a fresh, bounded Gemini 3.x run through the official Antigravity CLI (`agy`). The primary Pi model remains the conductor: it understands the user's intent, discovers or validates relevant materials, constructs an explicit request, invokes AGY, and optionally writes the returned prose to a user-approved path.
 
 The initial release focuses on two capabilities that directly support the motivating use case:
 
@@ -188,13 +188,13 @@ It consumes a minimal amount of quota, verifies a schema-constrained `gemini-3.1
 
 - Local repository: `/Users/davidus-tranus/Github/pi-agy-suite`
 - GitHub: `tranhoangnguyen03/pi-agy-suite`
-- npm: `@tranhoangnguyen03/pi-agy-suite`
+- npm: `pi-agy-suite`
 - License: MIT
 
 The package is installed with:
 
 ```bash
-pi install npm:@tranhoangnguyen03/pi-agy-suite
+pi install npm:pi-agy-suite
 ```
 
 The minimal documentation set is:

@@ -16,7 +16,7 @@ Install AGY using Google's official instructions, run `agy` once to authenticate
 The package is not published yet. After release:
 
 ```bash
-pi install npm:@tranhoangnguyen03/pi-agy-suite
+pi install npm:pi-agy-suite
 ```
 
 For deterministic isolated verification:
